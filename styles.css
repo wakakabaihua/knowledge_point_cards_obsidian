@@ -1,0 +1,1268 @@
+/* Knowledge Card Sync Plugin Styles */
+
+.kc-modal {
+	padding: 20px;
+}
+
+.kc-file-list {
+	max-height: 400px;
+	overflow-y: auto;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	padding: 10px;
+	margin: 10px 0;
+}
+
+.kc-file-item {
+	display: flex;
+	align-items: center;
+	padding: 8px;
+	margin: 4px 0;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.kc-file-item:hover {
+	background-color: var(--background-modifier-hover);
+}
+
+.kc-file-item.selected {
+	background-color: var(--interactive-accent);
+	color: var(--text-on-accent);
+}
+
+.kc-file-checkbox {
+	margin-right: 10px;
+}
+
+.kc-file-name {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.kc-file-path {
+	font-size: 0.85em;
+	opacity: 0.7;
+	margin-left: 10px;
+}
+
+.kc-button-group {
+	display: flex;
+	gap: 10px;
+	margin-top: 20px;
+	justify-content: flex-end;
+}
+
+.kc-status {
+	padding: 10px;
+	margin: 10px 0;
+	border-radius: 4px;
+	background-color: var(--background-secondary);
+}
+
+.kc-status.success {
+	background-color: var(--text-success);
+	color: white;
+}
+
+.kc-status.error {
+	background-color: var(--text-error);
+	color: white;
+}
+
+.kc-status.loading {
+	background-color: var(--text-warning);
+	color: white;
+}
+
+.kc-progress {
+	margin: 10px 0;
+}
+
+.kc-progress-bar {
+	height: 20px;
+	background-color: var(--background-secondary);
+	border-radius: 10px;
+	overflow: hidden;
+}
+
+.kc-progress-fill {
+	height: 100%;
+	background-color: var(--interactive-accent);
+	transition: width 0.3s;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: white;
+	font-size: 0.85em;
+}
+
+.kc-settings-section {
+	margin: 20px 0;
+}
+
+.kc-settings-label {
+	font-weight: 600;
+	margin-bottom: 5px;
+}
+
+.kc-settings-desc {
+	font-size: 0.9em;
+	opacity: 0.8;
+	margin-bottom: 10px;
+}
+
+/* ===== 知识点查看器样式 ===== */
+.knowledge-point-view-container {
+	padding: 12px;
+	overflow-y: auto;
+	height: 100%;
+}
+
+/* 卡片切换器样式 */
+.card-switcher {
+	margin-bottom: 12px;
+	padding: 10px;
+	background-color: var(--background-secondary);
+	border-radius: 6px;
+	border: 1px solid var(--background-modifier-border);
+}
+
+.card-switcher-controls {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	margin-bottom: 10px;
+}
+
+.card-switcher-nav {
+	display: flex;
+	gap: 5px;
+}
+
+.card-switcher-nav button {
+	padding: 5px 10px;
+	cursor: pointer;
+	border: 1px solid var(--background-modifier-border);
+	background-color: var(--interactive-normal);
+	border-radius: 4px;
+	transition: background-color 0.2s;
+}
+
+.card-switcher-nav button:hover:not(:disabled) {
+	background-color: var(--interactive-hover);
+}
+
+.card-switcher-nav button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.card-switcher-info {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.card-title {
+	font-size: 1.1em;
+	font-weight: 600;
+	color: var(--text-normal);
+}
+
+.card-metadata {
+	font-size: 0.9em;
+	color: var(--text-muted);
+}
+
+.card-switcher-actions {
+	display: flex;
+	gap: 5px;
+}
+
+.card-switcher-actions button {
+	padding: 5px 15px;
+	cursor: pointer;
+	border: 1px solid var(--background-modifier-border);
+	background-color: var(--interactive-normal);
+	border-radius: 4px;
+	transition: background-color 0.2s;
+}
+
+.card-switcher-actions button:hover {
+	background-color: var(--interactive-hover);
+}
+
+/* 空状态样式 */
+.knowledge-point-view-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 60px 20px;
+	color: var(--text-muted);
+	text-align: center;
+}
+
+.knowledge-point-view-empty-icon {
+	font-size: 3em;
+	margin-bottom: 15px;
+	opacity: 0.5;
+}
+
+.knowledge-point-view-empty-text {
+	font-size: 1.1em;
+	margin-bottom: 10px;
+}
+
+.knowledge-point-view-empty-hint {
+	font-size: 0.9em;
+	opacity: 0.7;
+}
+
+/* 知识点列表样式 */
+.knowledge-points-container {
+	margin-bottom: 15px;
+}
+
+.card-summary {
+	margin-bottom: 12px;
+	padding: 10px;
+	background-color: var(--background-secondary);
+	border-radius: 6px;
+	border-left: 3px solid var(--interactive-accent);
+}
+
+.card-summary h3 {
+	margin-bottom: 6px;
+	font-size: 0.95em;
+	color: var(--text-normal);
+}
+
+.card-summary p {
+	color: var(--text-muted);
+	line-height: 1.5;
+	font-size: 0.9em;
+	margin: 0;
+}
+
+.knowledge-points-list h3 {
+	margin-bottom: 10px;
+	font-size: 1em;
+	color: var(--text-normal);
+	border-bottom: 2px solid var(--background-modifier-border);
+	padding-bottom: 6px;
+}
+
+.knowledge-point-item {
+	margin-bottom: 12px;
+	padding: 12px;
+	background-color: var(--background-primary-alt);
+	border-left: 3px solid var(--interactive-accent);
+	border-radius: 4px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.knowledge-point-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	margin-bottom: 8px;
+	gap: 10px;
+}
+
+.knowledge-point-title {
+	font-size: 1em;
+	font-weight: 600;
+	color: var(--text-normal);
+	flex: 1;
+	margin: 0;
+	line-height: 1.4;
+}
+
+.kp-badges {
+	display: flex;
+	gap: 6px;
+	flex-shrink: 0;
+	align-items: center;
+}
+
+.kp-type-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	background-color: var(--background-modifier-border);
+	color: var(--text-normal);
+	border-radius: 10px;
+	font-size: 0.7em;
+	font-weight: 500;
+}
+
+.knowledge-point-weight {
+	display: inline-block;
+	padding: 2px 8px;
+	background-color: var(--interactive-accent);
+	color: var(--text-on-accent);
+	border-radius: 10px;
+	font-size: 0.7em;
+	font-weight: 600;
+}
+
+.knowledge-point-weight.weight-high {
+	background-color: var(--text-error);
+}
+
+.knowledge-point-weight.weight-medium {
+	background-color: var(--text-warning);
+}
+
+.knowledge-point-weight.weight-low {
+	background-color: var(--text-success);
+}
+
+.knowledge-point-content {
+	color: var(--text-normal);
+	font-size: 0.9em;
+	line-height: 1.5;
+	margin-bottom: 8px;
+}
+
+.knowledge-point-content p {
+	margin: 0.3em 0;
+}
+
+.knowledge-point-content ul,
+.knowledge-point-content ol {
+	margin: 0.3em 0;
+	padding-left: 1.3em;
+}
+
+.knowledge-point-short-explanation {
+	margin-bottom: 6px;
+	font-size: 0.9em;
+}
+
+.knowledge-point-detailed-explanation {
+	font-size: 0.85em;
+	color: var(--text-muted);
+}
+
+/* 题目容器样式 */
+.questions-section {
+	margin-top: 10px;
+	padding-top: 8px;
+	border-top: 1px solid var(--background-modifier-border);
+}
+
+.questions-header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 8px;
+	cursor: pointer;
+	user-select: none;
+	padding: 4px;
+	border-radius: 3px;
+	transition: background-color 0.2s;
+}
+
+.questions-header:hover {
+	background-color: var(--background-modifier-hover);
+}
+
+.questions-toggle-btn {
+	background: none;
+	border: none;
+	color: var(--text-muted);
+	cursor: pointer;
+	padding: 0;
+	font-size: 0.85em;
+	transition: transform 0.2s;
+}
+
+.questions-title {
+	font-size: 0.9em;
+	font-weight: 600;
+	color: var(--text-normal);
+	margin: 0;
+}
+
+.questions-list {
+	display: block;
+}
+
+.question-item {
+	margin-bottom: 10px;
+	padding: 10px;
+	background-color: var(--background-secondary);
+	border-radius: 4px;
+	border: 1px solid var(--background-modifier-border);
+}
+
+.question-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 8px;
+	padding-bottom: 6px;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.question-number {
+	font-weight: 600;
+	color: var(--text-normal);
+	font-size: 0.9em;
+}
+
+.question-type-badge {
+	display: inline-block;
+	padding: 2px 6px;
+	background-color: var(--interactive-accent);
+	color: var(--text-on-accent);
+	border-radius: 8px;
+	font-size: 0.7em;
+	font-weight: 500;
+}
+
+.question-text {
+	color: var(--text-normal);
+	font-size: 0.9em;
+	line-height: 1.5;
+	margin-bottom: 8px;
+}
+
+.question-text p {
+	margin: 0;
+}
+
+.question-content {
+	font-size: 0.9em;
+}
+
+.question-options {
+	margin: 8px 0;
+}
+
+.option-item {
+	padding: 6px 8px;
+	margin: 4px 0;
+	background-color: var(--background-primary);
+	border-radius: 3px;
+	border: 1px solid var(--background-modifier-border);
+	color: var(--text-normal);
+	transition: all 0.2s;
+	font-size: 0.9em;
+}
+
+.question-option.correct {
+	background-color: rgba(46, 204, 113, 0.1);
+	border-color: var(--text-success);
+	color: var(--text-success);
+	font-weight: 500;
+}
+
+.correct-mark {
+	color: var(--text-success);
+	font-weight: bold;
+	margin-left: 6px;
+	font-size: 0.85em;
+}
+
+.question-answer {
+	margin-top: 8px;
+	padding: 8px 10px;
+	background-color: rgba(46, 204, 113, 0.05);
+	border-left: 2px solid var(--text-success);
+	border-radius: 3px;
+	font-size: 0.85em;
+}
+
+.question-answer-label {
+	color: var(--text-success);
+	font-size: 0.85em;
+}
+
+.question-answer-label strong {
+	font-weight: 600;
+}
+
+.question-explanation {
+	margin-top: 8px;
+	padding: 8px 10px;
+	background-color: rgba(52, 152, 219, 0.05);
+	border-left: 2px solid var(--interactive-accent);
+	border-radius: 3px;
+	font-size: 0.85em;
+}
+
+.question-explanation-label {
+	color: var(--interactive-accent);
+	font-weight: 600;
+	font-size: 0.85em;
+	margin-bottom: 4px;
+}
+
+.question-explanation p {
+	color: var(--text-muted);
+	font-size: 0.85em;
+	line-height: 1.5;
+	margin: 0;
+}
+
+/* 加载状态样式 */
+.loading-state {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 40px;
+	color: var(--text-muted);
+}
+
+.loading-spinner {
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	border: 2px solid var(--background-modifier-border);
+	border-top-color: var(--interactive-accent);
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+	margin-right: 10px;
+}
+
+@keyframes spin {
+	to { transform: rotate(360deg); }
+}
+
+/* 错误状态样式 */
+.error-state {
+	padding: 20px;
+	background-color: var(--background-modifier-error);
+	border-left: 3px solid var(--text-error);
+	border-radius: 4px;
+	color: var(--text-error);
+	margin: 20px 0;
+}
+
+/* ===== 折叠功能样式 ===== */
+.collapsible-header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	cursor: pointer;
+	user-select: none;
+	padding: 4px 6px;
+	border-radius: 3px;
+	transition: background-color 0.2s;
+}
+
+.collapsible-header:hover {
+	background-color: var(--background-modifier-hover);
+}
+
+.toggle-icon {
+	font-size: 0.75em;
+	color: var(--text-muted);
+	transition: transform 0.2s;
+	min-width: 12px;
+	display: inline-block;
+}
+
+.questions-title-inline {
+	margin: 0;
+	font-size: 0.9em;
+	font-weight: 500;
+	color: var(--text-normal);
+}
+
+.collapsible-content {
+	margin-top: 8px;
+}
+
+/* 答案折叠按钮样式 */
+.answer-toggle {
+	margin-top: 8px;
+	padding: 4px 10px;
+	background-color: var(--interactive-normal);
+	color: var(--text-normal);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 3px;
+	cursor: pointer;
+	font-size: 0.8em;
+	transition: all 0.2s;
+	width: 100%;
+}
+
+.answer-toggle:hover {
+	background-color: var(--interactive-hover);
+}
+
+/* 答案区域样式 */
+.answer-section {
+	margin-top: 8px;
+	padding: 8px;
+	background-color: var(--background-primary);
+	border-left: 2px solid var(--text-success);
+	border-radius: 3px;
+	font-size: 0.85em;
+}
+
+.correct-answer-section {
+	margin-bottom: 6px;
+}
+
+.answer-label {
+	color: var(--text-success);
+	font-size: 0.85em;
+}
+
+.answer-value {
+	color: var(--text-normal);
+	font-weight: 500;
+	margin-left: 4px;
+	font-size: 0.9em;
+}
+
+/* 解析样式优化 */
+.answer-section .explanation {
+	margin-top: 6px;
+	padding-top: 6px;
+	border-top: 1px solid var(--background-modifier-border);
+}
+
+.answer-section .explanation strong {
+	color: var(--interactive-accent);
+	font-size: 0.85em;
+	display: block;
+	margin-bottom: 3px;
+}
+
+.answer-section .explanation p {
+	margin: 0;
+	color: var(--text-muted);
+	font-size: 0.85em;
+	line-height: 1.5;
+}
+
+/* 知识点内容样式优化 */
+.knowledge-point-content {
+	color: var(--text-normal);
+	font-size: 0.95em;
+	line-height: 1.6;
+	margin-bottom: 10px;
+}
+
+.knowledge-point-content p {
+	margin: 0.5em 0;
+}
+
+.knowledge-point-content code {
+	background-color: var(--background-secondary);
+	padding: 2px 6px;
+	border-radius: 3px;
+	font-family: var(--font-monospace);
+}
+
+.knowledge-point-content pre {
+	background-color: var(--background-secondary);
+	padding: 10px;
+	border-radius: 4px;
+	overflow-x: auto;
+}
+
+/* 选项样式优化 */
+.option-item {
+	padding: 6px 10px;
+	border-radius: 4px;
+	background-color: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	transition: all 0.2s;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.option-item.correct-answer {
+	background-color: rgba(46, 204, 113, 0.1);
+	border-color: var(--text-success);
+}
+
+.option-text {
+	color: var(--text-normal);
+	flex: 1;
+}
+
+.correct-marker {
+	color: var(--text-success);
+	font-weight: bold;
+	margin-left: 5px;
+}
+
+/* 权重标签样式 */
+.weight-badge {
+	padding: 3px 8px;
+	border-radius: 12px;
+	font-size: 0.8em;
+	font-weight: 500;
+	margin-left: 8px;
+}
+
+.weight-badge.weight-high {
+	background-color: var(--text-error);
+	color: white;
+}
+
+.weight-badge.weight-medium {
+	background-color: var(--text-warning);
+	color: white;
+}
+
+.weight-badge.weight-low {
+	background-color: var(--text-success);
+	color: white;
+}
+
+.kp-type-badge {
+	padding: 3px 8px;
+	background-color: var(--background-modifier-border);
+	color: var(--text-muted);
+	border-radius: 3px;
+	font-size: 0.75em;
+	margin-left: 8px;
+}
+
+/* 题目类型标签优化 */
+.question-type-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	background-color: var(--interactive-accent);
+	color: var(--text-on-accent);
+	border-radius: 3px;
+	font-size: 0.75em;
+	font-weight: 500;
+}
+
+/* 题目列表间距优化 */
+.questions-list {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+/* 题目内容样式 */
+.question-content {
+	margin-bottom: 10px;
+}
+
+.question-content p {
+	margin: 0;
+	color: var(--text-normal);
+	line-height: 1.5;
+}
+
+/* 题目区域标题样式 */
+.questions-section {
+	margin-top: 15px;
+	padding-top: 10px;
+	border-top: 1px solid var(--background-modifier-border);
+}
+
+
+/* ==== 增强的知识点和题目样式 ==== */
+
+/* 知识点标题区域 */
+.kp-header {
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+margin-bottom: 12px;
+}
+
+.kp-meta, .kp-badges {
+display: flex;
+gap: 8px;
+align-items: center;
+flex-shrink: 0;
+}
+
+.knowledge-point-title {
+margin: 0 !important;
+padding-right: 12px;
+}
+
+/* 权重标签样式 */
+.weight-badge {
+white-space: nowrap;
+}
+
+.weight-badge.weight-high {
+background-color: #dc3545 !important;
+color: white !important;
+}
+
+.weight-badge.weight-medium {
+background-color: #ffc107 !important;
+color: #000 !important;
+}
+
+.weight-badge.weight-low {
+background-color: #28a745 !important;
+color: white !important;
+}
+
+/* 知识点内容样式 */
+.kp-content {
+margin-top: 8px;
+line-height: 1.7;
+}
+
+.kp-content p {
+margin-bottom: 8px;
+}
+
+/* 题目区域折叠功能 */
+.questions-header {
+cursor: pointer;
+user-select: none;
+padding: 8px;
+background-color: var(--background-secondary);
+border-radius: 4px;
+margin-bottom: 10px;
+transition: background-color 0.2s;
+}
+
+.questions-header:hover {
+background-color: var(--background-modifier-hover);
+}
+
+.questions-header .toggle-icon {
+display: inline-block;
+width: 16px;
+text-align: center;
+transition: transform 0.2s;
+font-size: 0.9em;
+}
+
+.questions-title-inline {
+display: inline;
+margin: 0;
+}
+
+/* 题目列表 */
+.questions-list {
+display: block;
+}
+
+/* 单个题目样式 */
+.question-item {
+margin-bottom: 16px;
+padding: 12px;
+background-color: var(--background-secondary);
+border-radius: 6px;
+border: 1px solid var(--background-modifier-border);
+}
+
+.question-header {
+display: flex;
+gap: 8px;
+align-items: center;
+margin-bottom: 10px;
+}
+
+.question-number {
+font-weight: 600;
+color: var(--text-accent);
+min-width: 24px;
+}
+
+.question-type-badge {
+padding: 3px 8px;
+background-color: var(--interactive-accent);
+color: white;
+border-radius: 10px;
+font-size: 0.75em;
+font-weight: 500;
+}
+
+.question-content p {
+margin: 0;
+line-height: 1.6;
+}
+
+/* 选项样式 */
+.question-options {
+margin-top: 10px;
+display: flex;
+flex-direction: column;
+gap: 6px;
+}
+
+.option-item {
+padding: 8px 10px;
+background-color: var(--background-primary);
+border-radius: 4px;
+border-left: 2px solid transparent;
+transition: all 0.2s;
+}
+
+.option-item.correct-answer {
+background-color: rgba(40, 167, 69, 0.1) !important;
+border-left-color: #28a745 !important;
+font-weight: 500 !important;
+}
+
+/* 答案查看按钮 */
+.answer-toggle {
+margin-top: 10px;
+padding: 5px 12px;
+font-size: 0.85em;
+cursor: pointer;
+background-color: var(--interactive-normal);
+border: 1px solid var(--background-modifier-border);
+border-radius: 4px;
+color: var(--text-normal);
+transition: all 0.2s;
+}
+
+.answer-toggle:hover {
+background-color: var(--interactive-hover);
+transform: translateY(-1px);
+}
+
+/* 答案区域 */
+.answer-section {
+margin-top: 10px;
+padding: 10px 12px;
+background-color: var(--background-primary-alt);
+border-left: 3px solid #28a745;
+border-radius: 4px;
+}
+
+.correct-answer-section {
+margin-bottom: 8px;
+}
+
+.answer-label {
+color: #28a745;
+font-weight: 600;
+font-size: 0.9em;
+}
+
+.answer-value {
+color: var(--text-normal);
+font-weight: 500;
+}
+
+.explanation {
+padding-top: 10px;
+margin-top: 8px;
+border-top: 1px solid var(--background-modifier-border);
+}
+
+.explanation strong {
+color: var(--interactive-accent);
+display: block;
+margin-bottom: 6px;
+}
+
+.explanation p {
+margin: 0;
+color: var(--text-muted);
+line-height: 1.6;
+font-size: 0.9em;
+}
+
+/* 空状态提示 */
+.empty-state {
+	text-align: center;
+	padding: 20px;
+}
+
+.empty-hint {
+	color: var(--text-muted);
+	font-style: italic;
+	opacity: 0.7;
+	margin-bottom: 8px;
+}
+
+.empty-hint-sub {
+	color: var(--text-muted);
+	font-size: 0.85em;
+	opacity: 0.6;
+	margin-top: 4px;
+}
+
+/* 知识点简短说明样式 */
+.knowledge-point-short-explanation {
+padding: 8px 12px;
+background-color: var(--background-secondary);
+border-left: 3px solid var(--interactive-accent);
+margin-bottom: 12px;
+border-radius: 4px;
+font-size: 0.95em;
+}
+
+.knowledge-point-short-explanation strong {
+color: var(--text-accent);
+margin-right: 6px;
+}
+
+/* 知识点详细说明样式 */
+.knowledge-point-detailed-explanation {
+padding: 12px;
+line-height: 1.6;
+}
+
+.knowledge-point-detailed-explanation h1,
+.knowledge-point-detailed-explanation h2,
+.knowledge-point-detailed-explanation h3 {
+margin-top: 16px;
+margin-bottom: 8px;
+}
+
+.knowledge-point-detailed-explanation p {
+margin-bottom: 12px;
+}
+
+.knowledge-point-detailed-explanation ul,
+.knowledge-point-detailed-explanation ol {
+margin-left: 20px;
+margin-bottom: 12px;
+}
+
+.knowledge-point-detailed-explanation code {
+background-color: var(--background-primary-alt);
+padding: 2px 6px;
+border-radius: 3px;
+font-family: var(--font-monospace);
+}
+
+.knowledge-point-detailed-explanation pre {
+background-color: var(--background-primary-alt);
+padding: 12px;
+border-radius: 4px;
+overflow-x: auto;
+}
+
+/* ===== 新题型样式 ===== */
+
+/* 题目类型标签颜色区分 */
+.question-type-badge.type-multiple_choice {
+	background-color: var(--interactive-accent);
+}
+
+.question-type-badge.type-multiple_select {
+	background-color: #9b59b6;
+}
+
+.question-type-badge.type-true_false {
+	background-color: #27ae60;
+}
+
+.question-type-badge.type-word_bank {
+	background-color: #e67e22;
+}
+
+/* 多选题样式 */
+.multi-select-options {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.multi-select-hint {
+	display: block;
+	color: var(--text-muted);
+	font-size: 0.8em;
+	margin: 6px 0;
+	font-style: italic;
+}
+
+.checkbox-style {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.checkbox-style .checkbox {
+	font-size: 1.1em;
+	color: var(--text-muted);
+}
+
+.checkbox-style.correct-answer .checkbox {
+	color: var(--text-success);
+}
+
+/* 判断题样式 */
+.true-false-options {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 12px;
+}
+
+.true-false-item {
+	border: 1px solid var(--background-modifier-border);
+	background-color: var(--background-primary);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 14px !important;
+	border-radius: 6px !important;
+}
+
+.true-false-item.correct-answer {
+	background-color: rgba(46, 204, 113, 0.15) !important;
+	border-color: var(--text-success) !important;
+}
+
+.tf-icon {
+	font-size: 1.2em;
+	font-weight: bold;
+	min-width: 20px;
+}
+
+.true-false-item:first-child .tf-icon {
+	color: var(--text-success);
+}
+
+.true-false-item:last-child .tf-icon {
+	color: var(--text-error);
+}
+
+/* 选词填空样式 */
+.word-bank-sentence {
+	margin-bottom: 12px;
+	line-height: 1.8;
+}
+
+.word-bank-sentence p {
+	margin: 0;
+}
+
+.word-blank {
+	display: inline-block;
+	padding: 2px 12px;
+	margin: 0 4px;
+	background-color: var(--background-modifier-success);
+	border: 1px dashed var(--text-success);
+	border-radius: 4px;
+	color: var(--text-success);
+	font-weight: 500;
+	min-width: 60px;
+	text-align: center;
+}
+
+.word-bank-container {
+	margin: 12px 0;
+	padding: 10px;
+	background-color: var(--background-secondary);
+	border-radius: 6px;
+}
+
+.word-bank-container strong {
+	display: block;
+	margin-bottom: 8px;
+	color: var(--text-normal);
+	font-size: 0.9em;
+}
+
+.word-bank-words {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.word-bank-item {
+	display: inline-block;
+	padding: 6px 12px;
+	background-color: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 16px;
+	font-size: 0.9em;
+	cursor: default;
+	transition: all 0.2s;
+}
+
+.word-bank-item.correct-word {
+	background-color: rgba(46, 204, 113, 0.15);
+	border-color: var(--text-success);
+	color: var(--text-success);
+	font-weight: 500;
+}
+
+.word-bank-answers {
+	margin-top: 10px;
+	padding-top: 10px;
+	border-top: 1px dashed var(--background-modifier-border);
+}
+
+.word-bank-answers strong {
+	color: var(--text-success);
+	font-size: 0.85em;
+	margin-right: 8px;
+}
+
+.blank-answer {
+	display: inline-block;
+	margin: 4px 8px 4px 0;
+	padding: 2px 8px;
+	background-color: rgba(46, 204, 113, 0.1);
+	border-radius: 4px;
+	font-size: 0.85em;
+	color: var(--text-success);
+}
+
+/* 知识点简短说明样式 */
+.knowledge-point-short-explanation {
+padding: 8px 12px;
+background-color: var(--background-secondary);
+border-left: 3px solid var(--interactive-accent);
+margin-bottom: 12px;
+border-radius: 4px;
+font-size: 0.95em;
+}
+
+.knowledge-point-short-explanation strong {
+color: var(--text-accent);
+margin-right: 6px;
+}
+
+/* 知识点详细说明样式 */
+.knowledge-point-detailed-explanation {
+padding: 12px;
+line-height: 1.6;
+}
+
+.knowledge-point-detailed-explanation h1,
+.knowledge-point-detailed-explanation h2,
+.knowledge-point-detailed-explanation h3 {
+margin-top: 16px;
+margin-bottom: 8px;
+}
+
+.knowledge-point-detailed-explanation p {
+margin-bottom: 12px;
+}
+
+.knowledge-point-detailed-explanation ul,
+.knowledge-point-detailed-explanation ol {
+margin-left: 20px;
+margin-bottom: 12px;
+}
+
+.knowledge-point-detailed-explanation code {
+background-color: var(--background-primary-alt);
+padding: 2px 6px;
+border-radius: 3px;
+font-family: var(--font-monospace);
+}
+
+.knowledge-point-detailed-explanation pre {
+background-color: var(--background-primary-alt);
+padding: 12px;
+border-radius: 4px;
+overflow-x: auto;
+}
