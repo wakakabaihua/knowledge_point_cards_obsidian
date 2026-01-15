@@ -24,8 +24,8 @@ export interface KnowledgeCardSettings {
 }
 
 export const DEFAULT_SETTINGS: KnowledgeCardSettings = {
-	apiBaseUrl: 'https://d279d04230.yicp.fun/card',
-	apiToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJvZTZVZDVEV09aRjlPOVFHVm5zNkdZQmtrWHFrIiwiZXhwIjoxNzY4NTQ5OTA1fQ.EQ4mbkL24XyNDIu7YVoHQCW9OrH78zm0FoBfehvKQvE',
+	apiBaseUrl: 'https://www.xiaoxiaodu.cn',
+	apiToken: '',
 	autoSync: false,
 	defaultTags: [],
 	generateKnowledgePoints: true,

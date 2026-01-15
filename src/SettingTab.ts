@@ -20,9 +20,9 @@ export class KnowledgeCardSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('API地址')
-			.setDesc('知识卡片后端API的基础URL')
+			.setDesc('知识卡片后端API的基础URL（默认无需修改）')
 			.addText(text => text
-				.setPlaceholder('http://localhost:5000')
+				.setPlaceholder('https://www.xiaoxiaodu.cn')
 				.setValue(this.plugin.settings.apiBaseUrl)
 				.onChange(async (value) => {
 					this.plugin.settings.apiBaseUrl = value;
@@ -32,7 +32,7 @@ export class KnowledgeCardSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('API Token')
-			.setDesc('用于认证的Token，从知识卡片系统获取')
+			.setDesc('用于认证的Token，请前往 https://www.xiaoxiaodu.cn/obsidian-plugin 获取')
 			.addText(text => {
 				text.setPlaceholder('输入您的Token')
 					.setValue(this.plugin.settings.apiToken)

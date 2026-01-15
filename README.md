@@ -32,9 +32,9 @@ Sync notes to a knowledge card system for generating knowledge points and practi
 ### Configuration
 
 1. Open Settings → Knowledge Card Sync
-2. Enter your API URL (e.g., `http://localhost:5000`)
-3. Enter your API Token
-4. Click "Verify" to test the connection
+2. API URL: Default is `https://www.xiaoxiaodu.cn` (no change needed)
+3. Get your API Token from: **https://www.xiaoxiaodu.cn/obsidian-plugin**
+4. Enter your API Token and click "Verify" to test the connection
 
 ### Syncing Files
 
