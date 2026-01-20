@@ -13,13 +13,17 @@ export class KnowledgeCardSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		containerEl.createEl('h2', { text: 'Knowledge Card Sync 设置' });
+		new Setting(containerEl)
+			.setName('Knowledge Card Sync 设置')
+			.setHeading();
 
 		// API配置部分
-		containerEl.createEl('h3', { text: 'API配置' });
+		new Setting(containerEl)
+			.setName('API 配置')
+			.setHeading();
 
 		new Setting(containerEl)
-			.setName('API地址')
+			.setName('API 地址')
 			.setDesc('知识卡片后端API的基础URL（默认无需修改）')
 			.addText(text => text
 				.setPlaceholder('https://www.xiaoxiaodu.cn')
@@ -55,7 +59,9 @@ export class KnowledgeCardSettingTab extends PluginSettingTab {
 				}));
 
 		// 同步配置部分
-		containerEl.createEl('h3', { text: '同步配置' });
+		new Setting(containerEl)
+			.setName('同步配置')
+			.setHeading();
 
 		new Setting(containerEl)
 			.setName('自动同步')
@@ -82,7 +88,9 @@ export class KnowledgeCardSettingTab extends PluginSettingTab {
 				}));
 
 		// 生成配置部分
-		containerEl.createEl('h3', { text: '生成配置' });
+		new Setting(containerEl)
+			.setName('生成配置')
+			.setHeading();
 
 		new Setting(containerEl)
 			.setName('生成知识点')
@@ -105,7 +113,9 @@ export class KnowledgeCardSettingTab extends PluginSettingTab {
 				}));
 
 		// 调试选项
-		containerEl.createEl('h3', { text: '调试选项' });
+		new Setting(containerEl)
+			.setName('调试选项')
+			.setHeading();
 
 		new Setting(containerEl)
 			.setName('调试模式')
@@ -118,7 +128,9 @@ export class KnowledgeCardSettingTab extends PluginSettingTab {
 				}));
 
 		// 快捷操作
-		containerEl.createEl('h3', { text: '快捷操作' });
+		new Setting(containerEl)
+			.setName('快捷操作')
+			.setHeading();
 
 		new Setting(containerEl)
 			.setName('测试连接')
@@ -133,8 +145,9 @@ export class KnowledgeCardSettingTab extends PluginSettingTab {
 						} else {
 							new Notice('✗ 连接失败，请检查API地址和Token');
 						}
-					} catch (error) {
-						new Notice(`✗ 连接错误: ${error.message}`);
+					} catch (err) {
+						const errorMessage = err instanceof Error ? err.message : String(err);
+						new Notice(`✗ 连接错误: ${errorMessage}`);
 					}
 				}));
 
@@ -147,11 +160,12 @@ export class KnowledgeCardSettingTab extends PluginSettingTab {
 					try {
 						const cards = await this.plugin.api.getCards();
 						if (this.plugin.settings.debugMode) {
-							console.log('[KC Plugin] Knowledge Cards:', cards);
+							console.debug('[KC Plugin] Knowledge Cards:', cards);
 						}
 						new Notice(`找到 ${cards.length} 张卡片${this.plugin.settings.debugMode ? '，详情见控制台' : ''}`);
-					} catch (error) {
-						new Notice(`✗ 获取失败: ${error.message}`);
+					} catch (err) {
+						const errorMessage = err instanceof Error ? err.message : String(err);
+						new Notice(`✗ 获取失败: ${errorMessage}`);
 					}
 				}));
 	}

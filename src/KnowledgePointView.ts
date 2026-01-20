@@ -1,7 +1,7 @@
 import { ItemView, WorkspaceLeaf, Notice, MarkdownRenderer, Component } from 'obsidian';
 import { KnowledgeCardAPI } from './api';
 import { CardMappingManager } from './CardMappingManager';
-import { CardResponse, KnowledgePoint } from './types';
+import { CardResponse, KnowledgePoint, Question, BlankInfo } from './types';
 
 export const KNOWLEDGE_POINT_VIEW_TYPE = 'knowledge-point-view';
 
@@ -12,7 +12,7 @@ export class KnowledgePointView extends ItemView {
 	private api: KnowledgeCardAPI;
 	private mappingManager: CardMappingManager;
 	private currentCards: CardResponse[] = [];
-	private currentCardIndex: number = 0;
+	private currentCardIndex = 0;
 	private viewContentEl: HTMLElement;
 	private component: Component;
 
@@ -53,7 +53,7 @@ export class KnowledgePointView extends ItemView {
 		this.render();
 	}
 
-	async onClose() {
+	async onClose(): Promise<void> {
 		this.component.unload();
 		this.viewContentEl.empty();
 	}
@@ -61,7 +61,7 @@ export class KnowledgePointView extends ItemView {
 	/**
 	 * 加载所有已同步的卡片
 	 */
-	private async loadSyncedCards() {
+	private async loadSyncedCards(): Promise<void> {
 		try {
 			const mappings = this.mappingManager.getAllMappings();
 			
@@ -78,12 +78,13 @@ export class KnowledgePointView extends ItemView {
 					if (card) {
 						this.currentCards.push(card);
 					}
-				} catch (error) {
+				} catch {
 					// Silent fail for individual card loading
 				}
 			}
-		} catch (error) {
-			new Notice('加载卡片失败: ' + error.message);
+		} catch (err) {
+			const errorMessage = err instanceof Error ? err.message : String(err);
+			new Notice('加载卡片失败: ' + errorMessage);
 		}
 	}
 
@@ -113,7 +114,7 @@ export class KnowledgePointView extends ItemView {
 			}
 
 			return card;
-		} catch (error) {
+		} catch {
 			return null;
 		}
 	}
@@ -121,7 +122,7 @@ export class KnowledgePointView extends ItemView {
 	/**
 	 * 获取卡片的所有题目
 	 */
-	private async getQuestionsForKnowledgePoint(kpId: string): Promise<any[]> {
+	private async getQuestionsForKnowledgePoint(kpId: string): Promise<Question[]> {
 		try {
 			const response = await this.api['request'](
 				`/api/v1/knowledge-points/${kpId}/questions`,
@@ -133,7 +134,7 @@ export class KnowledgePointView extends ItemView {
 			}
 
 			return response.json || [];
-		} catch (error) {
+		} catch {
 			return [];
 		}
 	}
@@ -195,7 +196,7 @@ export class KnowledgePointView extends ItemView {
 		const currentCard = this.currentCards[this.currentCardIndex];
 		const cardInfo = switcherContainer.createDiv('card-info');
 		
-		const titleEl = cardInfo.createEl('div', { 
+		cardInfo.createEl('div', { 
 			text: currentCard.title || '未命名卡片',
 			cls: 'card-title'
 		});
@@ -288,15 +289,14 @@ export class KnowledgePointView extends ItemView {
 	/**
 	 * 渲染单个知识点
 	 */
-	private async renderKnowledgePoint(container: HTMLElement, kp: KnowledgePoint) {
-		const kpId = kp.id || kp.knowledge_point_id;
+	private async renderKnowledgePoint(container: HTMLElement, kp: KnowledgePoint): Promise<void> {
 		const kpDiv = container.createDiv('knowledge-point-item');
 
 		// 知识点标题行
 		const headerDiv = kpDiv.createDiv('knowledge-point-header');
 		
 		// 标题
-		const titleEl = headerDiv.createEl('h4', { 
+		headerDiv.createEl('h4', { 
 			text: kp.text || '未命名知识点',
 			cls: 'knowledge-point-title'
 		});
@@ -350,7 +350,7 @@ export class KnowledgePointView extends ItemView {
 					'',
 					this.component
 				);
-			} catch (error) {
+			} catch {
 				// 如果Markdown渲染失败，尝试简单的文本显示
 				detailExpDiv.empty();
 				const textLines = kp.detailed_explanation.split('\n');
@@ -382,7 +382,7 @@ export class KnowledgePointView extends ItemView {
 	/**
 	 * 渲染可折叠的题目列表
 	 */
-	private renderQuestionsCollapsible(container: HTMLElement, questions: any[]) {
+	private renderQuestionsCollapsible(container: HTMLElement, questions: Question[]): void {
 		if (!questions || questions.length === 0) {
 			return;
 		}
@@ -403,23 +403,23 @@ export class KnowledgePointView extends ItemView {
 
 		const questionsList = questionsDiv.createDiv('questions-list');
 		questionsList.addClass('collapsible-content');
+		questionsList.addClass('kc-hidden');
 		
 		// 默认折叠
 		let isExpanded = false;
-		questionsList.style.display = 'none';
 		
 		questionsHeader.addEventListener('click', () => {
 			isExpanded = !isExpanded;
 			if (isExpanded) {
-				questionsList.style.display = 'block';
+				questionsList.removeClass('kc-hidden');
 				toggleIcon.setText('▼');
 			} else {
-				questionsList.style.display = 'none';
+				questionsList.addClass('kc-hidden');
 				toggleIcon.setText('▶');
 			}
 		});
 		
-		questions.forEach((q: any, index: number) => {
+		questions.forEach((q: Question, index: number) => {
 			const qDiv = questionsList.createDiv('question-item');
 			
 			// 题目编号和类型
@@ -430,7 +430,7 @@ export class KnowledgePointView extends ItemView {
 			});
 			
 			const questionType = q.question_type || 'multiple_choice';
-			const typeBadge = qHeader.createEl('span', { 
+			qHeader.createEl('span', { 
 				cls: `question-type-badge type-${questionType}`,
 				text: this.getQuestionTypeText(questionType)
 			});
@@ -461,8 +461,7 @@ export class KnowledgePointView extends ItemView {
 				cls: 'answer-toggle'
 			});
 			
-			const answerDiv = qDiv.createDiv('answer-section');
-			answerDiv.style.display = 'none';
+			const answerDiv = qDiv.createDiv('answer-section kc-hidden');
 			
 			// 根据题目类型渲染正确答案
 			this.renderCorrectAnswer(answerDiv, q, questionType);
@@ -479,10 +478,10 @@ export class KnowledgePointView extends ItemView {
 			answerToggle.addEventListener('click', () => {
 				answerExpanded = !answerExpanded;
 				if (answerExpanded) {
-					answerDiv.style.display = 'block';
+					answerDiv.removeClass('kc-hidden');
 					answerToggle.setText('▲ 隐藏答案');
 				} else {
-					answerDiv.style.display = 'none';
+					answerDiv.addClass('kc-hidden');
 					answerToggle.setText('▼ 查看答案');
 				}
 			});
@@ -492,7 +491,7 @@ export class KnowledgePointView extends ItemView {
 	/**
 	 * 渲染单选题
 	 */
-	private renderMultipleChoiceQuestion(container: HTMLElement, q: any) {
+	private renderMultipleChoiceQuestion(container: HTMLElement, q: Question): void {
 		container.createEl('p', { text: q.question_text });
 		
 		if (q.options && q.options.length > 0) {
@@ -504,16 +503,15 @@ export class KnowledgePointView extends ItemView {
 				const isCorrect = q.correct_answer_index === i;
 				if (isCorrect) {
 					optEl.addClass('correct-answer');
-					optEl.innerHTML = `<strong>${optionLabel}. ${opt}</strong> <span style="color: var(--text-success); margin-left: 8px;">✓ 正确答案</span>`;
-					optEl.style.backgroundColor = 'var(--background-modifier-success)';
-					optEl.style.borderLeft = '3px solid var(--text-success)';
-					optEl.style.padding = '6px 8px';
-					optEl.style.borderRadius = '4px';
-					optEl.style.marginBottom = '4px';
+					optEl.addClass('kc-option-correct');
+					optEl.createEl('strong', { text: `${optionLabel}. ${opt}` });
+					optEl.createEl('span', { 
+						text: '✓ 正确答案',
+						cls: 'kc-correct-mark'
+					});
 				} else {
-					optEl.textContent = `${optionLabel}. ${opt}`;
-					optEl.style.padding = '4px 8px';
-					optEl.style.marginBottom = '4px';
+					optEl.addClass('kc-option-normal');
+					optEl.setText(`${optionLabel}. ${opt}`);
 				}
 			});
 		}
@@ -522,7 +520,7 @@ export class KnowledgePointView extends ItemView {
 	/**
 	 * 渲染多选题
 	 */
-	private renderMultipleSelectQuestion(container: HTMLElement, q: any) {
+	private renderMultipleSelectQuestion(container: HTMLElement, q: Question): void {
 		container.createEl('p', { text: q.question_text });
 		
 		// 添加多选提示
@@ -537,22 +535,21 @@ export class KnowledgePointView extends ItemView {
 			
 			q.options.forEach((opt: string, i: number) => {
 				const optionLabel = String.fromCharCode(65 + i);
-				const optEl = optionsDiv.createEl('div', { cls: 'option-item checkbox-style' });
+				const optEl = optionsDiv.createEl('div', { cls: 'option-item checkbox-style kc-option-item' });
 				
 				const isCorrect = correctAnswers.includes(i);
 				const checkbox = isCorrect ? '☑' : '☐';
 				
 				if (isCorrect) {
 					optEl.addClass('correct-answer');
-					optEl.innerHTML = `<span class="checkbox">${checkbox}</span> <strong>${optionLabel}. ${opt}</strong> <span style="color: var(--text-success); margin-left: 8px;">✓</span>`;
-					optEl.style.backgroundColor = 'var(--background-modifier-success)';
-					optEl.style.borderLeft = '3px solid var(--text-success)';
+					optEl.addClass('kc-option-correct');
+					optEl.createEl('span', { text: checkbox, cls: 'checkbox' });
+					optEl.createEl('strong', { text: ` ${optionLabel}. ${opt}` });
+					optEl.createEl('span', { text: ' ✓', cls: 'kc-correct-mark' });
 				} else {
-					optEl.innerHTML = `<span class="checkbox">${checkbox}</span> ${optionLabel}. ${opt}`;
+					optEl.createEl('span', { text: checkbox, cls: 'checkbox' });
+					optEl.createSpan({ text: ` ${optionLabel}. ${opt}` });
 				}
-				optEl.style.padding = '6px 8px';
-				optEl.style.borderRadius = '4px';
-				optEl.style.marginBottom = '4px';
 			});
 		}
 	}
@@ -560,7 +557,7 @@ export class KnowledgePointView extends ItemView {
 	/**
 	 * 渲染判断题
 	 */
-	private renderTrueFalseQuestion(container: HTMLElement, q: any) {
+	private renderTrueFalseQuestion(container: HTMLElement, q: Question): void {
 		container.createEl('p', { text: q.question_text });
 		
 		const optionsDiv = container.createDiv('question-options true-false-options');
@@ -568,73 +565,46 @@ export class KnowledgePointView extends ItemView {
 		const correctAnswer = q.correct_answer;
 		
 		// 正确选项
-		const trueEl = optionsDiv.createEl('div', { cls: 'option-item true-false-item' });
+		const trueEl = optionsDiv.createEl('div', { cls: 'option-item true-false-item kc-tf-option' });
 		if (correctAnswer === true) {
 			trueEl.addClass('correct-answer');
-			trueEl.innerHTML = `<span class="tf-icon">✓</span> <strong>正确</strong> <span style="color: var(--text-success); margin-left: 8px;">← 正确答案</span>`;
-			trueEl.style.backgroundColor = 'var(--background-modifier-success)';
-			trueEl.style.borderLeft = '3px solid var(--text-success)';
+			trueEl.addClass('kc-option-correct');
+			trueEl.createEl('span', { text: '✓', cls: 'tf-icon' });
+			trueEl.createEl('strong', { text: ' 正确' });
+			trueEl.createEl('span', { text: ' ← 正确答案', cls: 'kc-correct-mark' });
 		} else {
-			trueEl.innerHTML = `<span class="tf-icon">✓</span> 正确`;
+			trueEl.createEl('span', { text: '✓', cls: 'tf-icon' });
+			trueEl.createSpan({ text: ' 正确' });
 		}
-		trueEl.style.padding = '8px 12px';
-		trueEl.style.borderRadius = '4px';
-		trueEl.style.marginBottom = '6px';
-		trueEl.style.display = 'flex';
-		trueEl.style.alignItems = 'center';
-		trueEl.style.gap = '8px';
 		
 		// 错误选项
-		const falseEl = optionsDiv.createEl('div', { cls: 'option-item true-false-item' });
+		const falseEl = optionsDiv.createEl('div', { cls: 'option-item true-false-item kc-tf-option' });
 		if (correctAnswer === false) {
 			falseEl.addClass('correct-answer');
-			falseEl.innerHTML = `<span class="tf-icon">✗</span> <strong>错误</strong> <span style="color: var(--text-success); margin-left: 8px;">← 正确答案</span>`;
-			falseEl.style.backgroundColor = 'var(--background-modifier-success)';
-			falseEl.style.borderLeft = '3px solid var(--text-success)';
+			falseEl.addClass('kc-option-correct');
+			falseEl.createEl('span', { text: '✗', cls: 'tf-icon' });
+			falseEl.createEl('strong', { text: ' 错误' });
+			falseEl.createEl('span', { text: ' ← 正确答案', cls: 'kc-correct-mark' });
 		} else {
-			falseEl.innerHTML = `<span class="tf-icon">✗</span> 错误`;
+			falseEl.createEl('span', { text: '✗', cls: 'tf-icon' });
+			falseEl.createSpan({ text: ' 错误' });
 		}
-		falseEl.style.padding = '8px 12px';
-		falseEl.style.borderRadius = '4px';
-		falseEl.style.marginBottom = '6px';
-		falseEl.style.display = 'flex';
-		falseEl.style.alignItems = 'center';
-		falseEl.style.gap = '8px';
 	}
 
 	/**
 	 * 渲染选词填空题
 	 */
-	private renderWordBankQuestion(container: HTMLElement, q: any) {
+	private renderWordBankQuestion(container: HTMLElement, q: Question): void {
 		// 渲染带空位的句子
 		const sentenceDiv = container.createDiv('word-bank-sentence');
 		
 		// 解析题目文本中的空位 (格式: ___1___, ___2___ 或 {{blank}})
-		let questionText = q.question_text || '';
+		const questionText = q.question_text || '';
 		const blanks = q.blanks || [];
 		const wordBank = q.word_bank || [];
 		
-		// 如果有blanks信息，使用索引标记替换
-		if (blanks.length > 0) {
-			blanks.forEach((blank: any, idx: number) => {
-				// 在题目中显示空位，使用下划线样式
-				const blankMarker = `___${idx + 1}___`;
-				const blankEl = `<span class="word-blank" data-index="${idx}">[${blank.answer || '___'}]</span>`;
-				
-				// 尝试多种格式的替换
-				questionText = questionText
-					.replace(new RegExp(`___${idx + 1}___`, 'g'), blankEl)
-					.replace(/\{\{blank\}\}/i, blankEl)
-					.replace(/_+/g, (match: string, offset: number) => {
-						if (match.length >= 3) {
-							return blankEl;
-						}
-						return match;
-					});
-			});
-		}
-		
-		sentenceDiv.innerHTML = `<p>${questionText}</p>`;
+		// 显示原始题目文本
+		sentenceDiv.createEl('p', { text: questionText });
 		
 		// 显示词库
 		if (wordBank.length > 0) {
@@ -642,18 +612,17 @@ export class KnowledgePointView extends ItemView {
 			wordBankDiv.createEl('strong', { text: '📝 词库：' });
 			
 			const wordsDiv = wordBankDiv.createDiv('word-bank-words');
-			wordBank.forEach((word: string, idx: number) => {
+			wordBank.forEach((word: string) => {
 				const wordEl = wordsDiv.createEl('span', { 
 					text: word,
 					cls: 'word-bank-item'
 				});
 				
 				// 检查是否为正确答案中的词
-				const isAnswer = blanks.some((b: any) => b.answer === word);
+				const isAnswer = blanks.some((b: BlankInfo) => b.answer === word);
 				if (isAnswer) {
 					wordEl.addClass('correct-word');
-					wordEl.style.backgroundColor = 'var(--background-modifier-success)';
-					wordEl.style.borderColor = 'var(--text-success)';
+					wordEl.addClass('kc-word-correct');
 				}
 			});
 		}
@@ -662,7 +631,7 @@ export class KnowledgePointView extends ItemView {
 		if (blanks.length > 0) {
 			const answersDiv = container.createDiv('word-bank-answers');
 			answersDiv.createEl('strong', { text: '✓ 正确填入：' });
-			blanks.forEach((blank: any, idx: number) => {
+			blanks.forEach((blank: BlankInfo, idx: number) => {
 				answersDiv.createEl('span', { 
 					text: `第${idx + 1}空: ${blank.answer}`,
 					cls: 'blank-answer'
@@ -674,7 +643,7 @@ export class KnowledgePointView extends ItemView {
 	/**
 	 * 渲染正确答案区域
 	 */
-	private renderCorrectAnswer(container: HTMLElement, q: any, questionType: string) {
+	private renderCorrectAnswer(container: HTMLElement, q: Question, questionType: string): void {
 		const correctAnswerDiv = container.createDiv('correct-answer-section');
 		correctAnswerDiv.createEl('strong', { 
 			text: '✓ 正确答案: ',
@@ -688,7 +657,7 @@ export class KnowledgePointView extends ItemView {
 				correctAnswerText = q.correct_answer === true ? '正确 ✓' : '错误 ✗';
 				break;
 				
-			case 'multiple_select':
+			case 'multiple_select': {
 				const correctIndices = q.correct_answers || [];
 				if (correctIndices.length > 0 && q.options) {
 					const answers = correctIndices.map((idx: number) => {
@@ -698,15 +667,17 @@ export class KnowledgePointView extends ItemView {
 					correctAnswerText = answers.join('、');
 				}
 				break;
+			}
 				
-			case 'word_bank':
+			case 'word_bank': {
 				const blanks = q.blanks || [];
 				if (blanks.length > 0) {
-					correctAnswerText = blanks.map((b: any, idx: number) => 
+					correctAnswerText = blanks.map((b: BlankInfo, idx: number) => 
 						`第${idx + 1}空: ${b.answer}`
 					).join('；');
 				}
 				break;
+			}
 				
 			case 'multiple_choice':
 			default:

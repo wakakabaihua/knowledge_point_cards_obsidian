@@ -21,17 +21,17 @@ export class KnowledgeCardAPI {
 
 	private async request(
 		endpoint: string, 
-		method: string = 'GET', 
-		body?: any,
+		method = 'GET', 
+		body?: Record<string, unknown>,
 		timeout?: number // 自定义超时时间（毫秒）
 	): Promise<RequestUrlResponse> {
 		const url = `${this.settings.apiBaseUrl}${endpoint}`;
 		
 		// Debug mode logging
 		if (this.settings.debugMode) {
-			console.log(`[KC API] ${method} ${url}`);
+			console.debug(`[KC API] ${method} ${url}`);
 			if (body) {
-				console.log(`[KC API] Body:`, body);
+				console.debug(`[KC API] Body:`, body);
 			}
 		}
 
@@ -51,7 +51,7 @@ export class KnowledgeCardAPI {
 			const duration = Date.now() - startTime;
 
 			if (this.settings.debugMode) {
-				console.log(`[KC API] Response: ${response.status} (${duration}ms)`);
+				console.debug(`[KC API] Response: ${response.status} (${duration}ms)`);
 			}
 
 			// Log errors regardless of debug mode

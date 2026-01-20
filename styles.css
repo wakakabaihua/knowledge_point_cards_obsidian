@@ -1266,3 +1266,85 @@ padding: 12px;
 border-radius: 4px;
 overflow-x: auto;
 }
+
+
+/* ===== 新增的CSS类样式 ===== */
+
+/* 隐藏元素的通用类 */
+.kc-hidden {
+display: none !important;
+}
+
+/* 确认对话框样式 */
+.kc-confirm-modal .kc-confirm-message {
+margin-bottom: 20px;
+line-height: 1.6;
+white-space: pre-line;
+}
+
+/* 确认信息样式 */
+.kc-confirm-info {
+margin: 1em 0;
+padding: 1em;
+background: var(--background-secondary);
+border-radius: 5px;
+}
+
+.kc-mapping-details {
+margin-top: 0.5em;
+padding: 0.5em;
+font-family: monospace;
+font-size: 0.9em;
+color: var(--text-muted);
+}
+
+.kc-mapping-details div {
+margin: 0.25em 0;
+}
+
+.kc-warning-text {
+color: var(--text-warning);
+font-weight: 500;
+}
+
+/* 选项样式 - 正确答案 */
+.kc-option-correct {
+background-color: var(--background-modifier-success) !important;
+border-left: 3px solid var(--text-success) !important;
+padding: 6px 8px;
+border-radius: 4px;
+margin-bottom: 4px;
+}
+
+.kc-option-normal {
+padding: 4px 8px;
+margin-bottom: 4px;
+}
+
+.kc-option-item {
+padding: 6px 8px;
+border-radius: 4px;
+margin-bottom: 4px;
+}
+
+/* 正确标记 */
+.kc-correct-mark {
+color: var(--text-success);
+margin-left: 8px;
+}
+
+/* 判断题选项样式 */
+.kc-tf-option {
+padding: 8px 12px;
+border-radius: 4px;
+margin-bottom: 6px;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+
+/* 选词填空正确词汇 */
+.kc-word-correct {
+background-color: var(--background-modifier-success) !important;
+border-color: var(--text-success) !important;
+}

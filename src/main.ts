@@ -1,4 +1,4 @@
-import { Plugin, Notice, WorkspaceLeaf, TFile, Modal, App } from 'obsidian';
+import { Plugin, Notice, WorkspaceLeaf, Modal, App, MarkdownView, TFile } from 'obsidian';
 import { KnowledgeCardSettings, DEFAULT_SETTINGS, FileInfo } from './types';
 import { KnowledgeCardAPI } from './api';
 import { FileSelectorModal } from './FileSelectorModal';
@@ -143,7 +143,7 @@ export default class KnowledgeCardPlugin extends Plugin {
 		const leaves = this.app.workspace.getLeavesOfType('markdown');
 
 		for (const leaf of leaves) {
-			const view = leaf.view;
+			const view = leaf.view as MarkdownView;
 			if (view.getViewType() === 'markdown') {
 				const file = view.file;
 				if (file) {
@@ -185,7 +185,7 @@ export default class KnowledgeCardPlugin extends Plugin {
 			this.mappingManager,
 			async (selectedFiles) => {
 				if (this.settings.debugMode) {
-					console.log('[KC Plugin] Selected files:', selectedFiles);
+					console.debug('[KC Plugin] Selected files:', selectedFiles);
 				}
 			}
 		).open();
@@ -201,7 +201,7 @@ export default class KnowledgeCardPlugin extends Plugin {
 			return;
 		}
 
-		const activeView = this.app.workspace.getActiveViewOfType(require('obsidian').MarkdownView);
+		const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
 		if (!activeView) {
 			new Notice('请先打开一个Markdown文件');
 			return;
@@ -234,8 +234,9 @@ export default class KnowledgeCardPlugin extends Plugin {
 				await this.api.deleteCard(existingMapping.cardId);
 				await this.mappingManager.removeMapping(file.path);
 				new Notice('✓ 旧卡片已删除');
-			} catch (error) {
-				new Notice(`删除旧卡片失败: ${error.message}`);
+			} catch (err) {
+				const errorMessage = err instanceof Error ? err.message : String(err);
+				new Notice(`删除旧卡片失败: ${errorMessage}`);
 				return;
 			}
 		}
@@ -261,14 +262,15 @@ export default class KnowledgeCardPlugin extends Plugin {
 				
 				new Notice(`✓ ${file.basename} - 卡片已创建，知识点正在后台生成`);
 				if (this.settings.debugMode) {
-					console.log('[KC Plugin] Created card:', result.card?.card_id);
-					console.log('[KC Plugin] Mapping saved:', file.path, '->', result.card?.card_id);
+					console.debug('[KC Plugin] Created card:', result.card?.card_id);
+					console.debug('[KC Plugin] Mapping saved:', file.path, '->', result.card?.card_id);
 				}
 			} else {
 				new Notice(`✗ 创建失败: ${result.error || '未知错误'}`);
 			}
-		} catch (error) {
-			new Notice(`✗ 同步失败: ${error.message}`);
+		} catch (err) {
+			const errorMessage = err instanceof Error ? err.message : String(err);
+			new Notice(`✗ 同步失败: ${errorMessage}`);
 		}
 	}
 
@@ -349,40 +351,6 @@ class ConfirmRegenerateModal extends Modal {
 			this.callback(true);
 			this.close();
 		});
-
-		// 添加样式
-		const style = contentEl.createEl('style');
-		style.textContent = `
-			.kc-confirm-info {
-				margin: 1em 0;
-				padding: 1em;
-				background: var(--background-secondary);
-				border-radius: 5px;
-			}
-			.kc-mapping-details {
-				margin-top: 0.5em;
-				padding: 0.5em;
-				font-family: monospace;
-				font-size: 0.9em;
-				color: var(--text-muted);
-			}
-			.kc-mapping-details div {
-				margin: 0.25em 0;
-			}
-			.kc-warning-text {
-				color: var(--text-warning);
-				font-weight: 500;
-			}
-			.kc-button-group {
-				display: flex;
-				gap: 10px;
-				justify-content: flex-end;
-				margin-top: 1.5em;
-			}
-			.kc-button-group button {
-				padding: 0.5em 1.5em;
-			}
-		`;
 	}
 
 	onClose() {

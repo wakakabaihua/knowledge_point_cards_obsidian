@@ -1,7 +1,52 @@
-import { App, Modal, Notice, Setting } from 'obsidian';
+import { App, Modal, Notice, Setting, ButtonComponent } from 'obsidian';
 import { FileInfo } from './types';
 import { KnowledgeCardAPI } from './api';
-import { CardMappingManager } from './CardMappingManager';
+import { CardMappingManager, FileCardMapping } from './CardMappingManager';
+
+/**
+ * 确认对话框
+ */
+class ConfirmModal extends Modal {
+	private message: string;
+	private onConfirm: () => void;
+	private onCancel: () => void;
+
+	constructor(app: App, message: string, onConfirm: () => void, onCancel: () => void) {
+		super(app);
+		this.message = message;
+		this.onConfirm = onConfirm;
+		this.onCancel = onCancel;
+	}
+
+	onOpen(): void {
+		const { contentEl } = this;
+		contentEl.empty();
+		contentEl.addClass('kc-confirm-modal');
+		contentEl.createEl('p', { text: this.message, cls: 'kc-confirm-message' });
+
+		const buttonDiv = contentEl.createDiv({ cls: 'kc-button-group' });
+		
+		new ButtonComponent(buttonDiv)
+			.setButtonText('取消')
+			.onClick(() => {
+				this.onCancel();
+				this.close();
+			});
+
+		new ButtonComponent(buttonDiv)
+			.setButtonText('确认')
+			.setCta()
+			.onClick(() => {
+				this.onConfirm();
+				this.close();
+			});
+	}
+
+	onClose(): void {
+		const { contentEl } = this;
+		contentEl.empty();
+	}
+}
 
 export class FileSelectorModal extends Modal {
 	private files: FileInfo[];
@@ -42,12 +87,10 @@ export class FileSelectorModal extends Modal {
 		});
 
 		// 状态显示区域
-		this.statusContainer = contentEl.createDiv('kc-status');
-		this.statusContainer.style.display = 'none';
+		this.statusContainer = contentEl.createDiv('kc-status kc-hidden');
 
 		// 进度条
-		this.progressContainer = contentEl.createDiv('kc-progress');
-		this.progressContainer.style.display = 'none';
+		this.progressContainer = contentEl.createDiv('kc-progress kc-hidden');
 
 		// 全选/取消全选
 		new Setting(contentEl)
@@ -152,30 +195,30 @@ export class FileSelectorModal extends Modal {
 		});
 	}
 
-	private showStatus(message: string, type: 'success' | 'error' | 'loading') {
-		this.statusContainer.style.display = 'block';
+	private showStatus(message: string, type: 'success' | 'error' | 'loading'): void {
+		this.statusContainer.removeClass('kc-hidden');
 		this.statusContainer.className = `kc-status ${type}`;
 		this.statusContainer.setText(message);
 	}
 
-	private hideStatus() {
-		this.statusContainer.style.display = 'none';
+	private hideStatus(): void {
+		this.statusContainer.addClass('kc-hidden');
 	}
 
-	private updateProgress(current: number, total: number) {
+	private updateProgress(current: number, total: number): void {
 		if (total === 0) {
-			this.progressContainer.style.display = 'none';
+			this.progressContainer.addClass('kc-hidden');
 			return;
 		}
 
-		this.progressContainer.style.display = 'block';
+		this.progressContainer.removeClass('kc-hidden');
 		this.progressContainer.empty();
 
 		const progressBar = this.progressContainer.createDiv('kc-progress-bar');
 		const progressFill = progressBar.createDiv('kc-progress-fill');
 		
 		const percentage = Math.round((current / total) * 100);
-		progressFill.style.width = `${percentage}%`;
+		progressFill.setCssStyles({ width: `${percentage}%` });
 		progressFill.setText(`${current}/${total} (${percentage}%)`);
 	}
 
@@ -192,7 +235,7 @@ export class FileSelectorModal extends Modal {
 		}
 
 		// 检查是否有文件已经同步过
-		const duplicateFiles: Array<{ file: FileInfo; mapping: any }> = [];
+		const duplicateFiles: Array<{ file: FileInfo; mapping: FileCardMapping }> = [];
 		for (const file of selectedFiles) {
 			const mapping = this.mappingManager.getMapping(file.path);
 			if (mapping) {
@@ -203,7 +246,7 @@ export class FileSelectorModal extends Modal {
 		// 如果有重复文件，先询问用户
 		if (duplicateFiles.length > 0) {
 			const fileNames = duplicateFiles.map(d => d.file.name).join('、');
-			const shouldContinue = confirm(
+			const shouldContinue = await this.showConfirmDialog(
 				`以下文件已经同步过：\n\n${fileNames}\n\n` +
 				`继续将删除旧卡片及其所有知识点和题目，并重新生成。\n\n` +
 				`是否继续？`
@@ -220,8 +263,9 @@ export class FileSelectorModal extends Modal {
 				try {
 					await this.api.deleteCard(mapping.cardId);
 					await this.mappingManager.removeMapping(file.path);
-				} catch (error) {
-					new Notice(`删除 ${file.name} 的旧卡片失败: ${error.message}`);
+				} catch (err) {
+					const errorMessage = err instanceof Error ? err.message : String(err);
+					new Notice(`删除 ${file.name} 的旧卡片失败: ${errorMessage}`);
 				}
 			}
 		}
@@ -257,9 +301,10 @@ export class FileSelectorModal extends Modal {
 					errorCount++;
 					new Notice(`✗ ${file.name} - ${result.error || '创建失败'}`);
 				}
-			} catch (error) {
+			} catch (err) {
 				errorCount++;
-				new Notice(`✗ ${file.name} - ${error.message}`);
+				const errorMessage = err instanceof Error ? err.message : String(err);
+				new Notice(`✗ ${file.name} - ${errorMessage}`);
 			}
 		}
 
@@ -287,8 +332,23 @@ export class FileSelectorModal extends Modal {
 		}, 3000);
 	}
 
-	onClose() {
+	onClose(): void {
 		const { contentEl } = this;
 		contentEl.empty();
+	}
+
+	/**
+	 * 显示确认对话框
+	 */
+	private showConfirmDialog(message: string): Promise<boolean> {
+		return new Promise((resolve) => {
+			const modal = new ConfirmModal(
+				this.app,
+				message,
+				() => resolve(true),
+				() => resolve(false)
+			);
+			modal.open();
+		});
 	}
 }

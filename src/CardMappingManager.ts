@@ -1,9 +1,9 @@
-import { Plugin, TFile } from 'obsidian';
+import { Plugin } from 'obsidian';
 
 /**
  * 文件和卡片ID的映射关系
  */
-interface FileCardMapping {
+export interface FileCardMapping {
 	filePath: string;
 	cardId: string;
 	lastSync: string; // ISO时间戳
