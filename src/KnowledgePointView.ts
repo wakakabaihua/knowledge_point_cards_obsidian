@@ -53,7 +53,7 @@ export class KnowledgePointView extends ItemView {
 		this.render();
 	}
 
-	async onClose(): Promise<void> {
+	onClose(): void {
 		this.component.unload();
 		this.viewContentEl.empty();
 	}
@@ -78,7 +78,7 @@ export class KnowledgePointView extends ItemView {
 					if (card) {
 						this.currentCards.push(card);
 					}
-				} catch {
+				} catch (_e) {
 					// Silent fail for individual card loading
 				}
 			}
@@ -114,7 +114,7 @@ export class KnowledgePointView extends ItemView {
 			}
 
 			return card;
-		} catch {
+		} catch (_e) {
 			return null;
 		}
 	}
@@ -134,7 +134,7 @@ export class KnowledgePointView extends ItemView {
 			}
 
 			return response.json || [];
-		} catch {
+		} catch (_e) {
 			return [];
 		}
 	}
@@ -154,7 +154,7 @@ export class KnowledgePointView extends ItemView {
 		this.renderCardSwitcher();
 
 		// 渲染当前卡片的知识点
-		this.renderKnowledgePoints();
+		void this.renderKnowledgePoints();
 	}
 
 	/**
@@ -237,13 +237,20 @@ export class KnowledgePointView extends ItemView {
 			cls: 'refresh-button',
 			attr: { title: '刷新卡片列表' }
 		});
-		refreshBtn.addEventListener('click', async () => {
-			new Notice('正在刷新...');
-			await this.loadSyncedCards();
-			this.currentCardIndex = 0;
-			this.render();
-			new Notice('刷新完成');
+		refreshBtn.addEventListener('click', () => {
+			void this.handleRefresh();
 		});
+	}
+
+	/**
+	 * 处理刷新操作
+	 */
+	private async handleRefresh(): Promise<void> {
+		new Notice('正在刷新...');
+		await this.loadSyncedCards();
+		this.currentCardIndex = 0;
+		this.render();
+		new Notice('刷新完成');
 	}
 
 	/**
@@ -350,7 +357,7 @@ export class KnowledgePointView extends ItemView {
 					'',
 					this.component
 				);
-			} catch {
+			} catch (_e) {
 				// 如果Markdown渲染失败，尝试简单的文本显示
 				detailExpDiv.empty();
 				const textLines = kp.detailed_explanation.split('\n');

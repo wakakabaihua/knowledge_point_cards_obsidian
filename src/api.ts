@@ -75,8 +75,35 @@ export class KnowledgeCardAPI {
 		try {
 			const response = await this.request('/api/users/me', 'GET');
 			return response.status === 200;
-		} catch (error) {
+		} catch (_e) {
 			return false;
+		}
+	}
+
+	/**
+	 * 检查卡片创建配额
+	 */
+	async checkCardQuota(): Promise<{allowed: boolean; current_usage: number; limit: number; remaining: number; message?: string}> {
+		try {
+			const response = await this.request('/api/v1/membership/check-quota/card_limit', 'GET');
+			
+			if (response.status !== 200) {
+				// 检查失败时返回允许（降级策略）
+				return { allowed: true, current_usage: 0, limit: -1, remaining: -1 };
+			}
+			
+			const data = response.json;
+			return {
+				allowed: data.allowed !== false,
+				current_usage: data.current_usage || 0,
+				limit: data.limit || -1,
+				remaining: data.remaining || -1,
+				message: data.allowed === false ? `卡片数量已达上限（${data.limit}张），已创建 ${data.current_usage} 张。请升级会员解锁更多。` : undefined
+			};
+		} catch (error) {
+			// 检查失败时返回允许（降级策略）
+			console.error('[KC API] 配额检查失败:', error);
+			return { allowed: true, current_usage: 0, limit: -1, remaining: -1 };
 		}
 	}
 
@@ -88,6 +115,12 @@ export class KnowledgeCardAPI {
 		title?: string, 
 		tags?: string[]
 	): Promise<CardResponse> {
+		// 先检查配额
+		const quotaCheck = await this.checkCardQuota();
+		if (!quotaCheck.allowed) {
+			throw new Error(quotaCheck.message || '卡片数量已达上限，请升级会员');
+		}
+		
 		const response = await this.request('/api/v1/cards', 'POST', {
 			content_md: content,
 			title: title || '未命名卡片',
@@ -95,6 +128,14 @@ export class KnowledgeCardAPI {
 			difficulty: 3,
 			source: 'obsidian'
 		}, 300000);
+
+		if (response.status === 403) {
+			// 处理后端返回的配额超限错误
+			const detail = response.json?.detail;
+			if (detail?.error === 'quota_exceeded') {
+				throw new Error(detail.message || '卡片数量已达上限，请升级会员');
+			}
+		}
 
 		if (response.status !== 201) {
 			throw new Error(`创建卡片失败: ${response.status}`);

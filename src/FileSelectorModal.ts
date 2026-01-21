@@ -74,12 +74,12 @@ export class FileSelectorModal extends Modal {
 		this.isGenerating = false;
 	}
 
-	onOpen() {
+	onOpen(): void {
 		const { contentEl } = this;
 		contentEl.addClass('kc-modal');
 
 		// 标题
-		contentEl.createEl('h2', { text: '选择要同步的文件' });
+		contentEl.createEl('h2', { text: 'Select files to sync' });
 
 		// 说明文字
 		contentEl.createEl('p', { 

@@ -23,16 +23,16 @@ export default class KnowledgeCardPlugin extends Plugin {
 		this.api = new KnowledgeCardAPI(this.settings);
 
 		// 添加ribbon图标
-		this.addRibbonIcon('upload-cloud', 'Knowledge Card Sync', async (evt: MouseEvent) => {
-			await this.openFileSelectorModal();
+		this.addRibbonIcon('upload-cloud', 'Knowledge Card Sync', (evt: MouseEvent) => {
+			void this.openFileSelectorModal();
 		});
 
 		// 添加命令：打开文件选择器
 		this.addCommand({
 			id: 'open-file-selector',
 			name: '同步已打开的文件到知识卡片',
-			callback: async () => {
-				await this.openFileSelectorModal();
+			callback: () => {
+				void this.openFileSelectorModal();
 			}
 		});
 
@@ -40,8 +40,8 @@ export default class KnowledgeCardPlugin extends Plugin {
 		this.addCommand({
 			id: 'sync-current-file',
 			name: '同步当前文件到知识卡片',
-			callback: async () => {
-				await this.syncCurrentFile();
+			callback: () => {
+				void this.syncCurrentFile();
 			}
 		});
 
@@ -49,13 +49,14 @@ export default class KnowledgeCardPlugin extends Plugin {
 		this.addCommand({
 			id: 'validate-token',
 			name: '验证API Token',
-			callback: async () => {
-				const valid = await this.api.validateToken();
-				if (valid) {
-					new Notice('✓ Token验证成功');
-				} else {
-					new Notice('✗ Token验证失败，请检查设置');
-				}
+			callback: () => {
+				void this.api.validateToken().then((valid) => {
+					if (valid) {
+						new Notice('✓ Token验证成功');
+					} else {
+						new Notice('✗ Token验证失败，请检查设置');
+					}
+				});
 			}
 		});
 
@@ -63,8 +64,8 @@ export default class KnowledgeCardPlugin extends Plugin {
 		this.addCommand({
 			id: 'open-knowledge-point-view',
 			name: '打开知识点查看器',
-			callback: async () => {
-				await this.activateKnowledgePointView();
+			callback: () => {
+				void this.activateKnowledgePointView();
 			}
 		});
 
@@ -75,8 +76,8 @@ export default class KnowledgeCardPlugin extends Plugin {
 		);
 
 		// 添加ribbon图标 - 知识点查看器
-		this.addRibbonIcon('book-open', '知识点查看器', async (evt: MouseEvent) => {
-			await this.activateKnowledgePointView();
+		this.addRibbonIcon('book-open', '知识点查看器', (evt: MouseEvent) => {
+			void this.activateKnowledgePointView();
 		});
 
 		// 添加设置选项卡
@@ -85,7 +86,7 @@ export default class KnowledgeCardPlugin extends Plugin {
 		// 自动同步功能（如果启用）
 		if (this.settings.autoSync) {
 			this.registerEvent(
-				this.app.vault.on('modify', async (file) => {
+				this.app.vault.on('modify', (file) => {
 					if (file instanceof TFile && file.extension === 'md') {
 						// TODO: 添加防抖逻辑和自动同步实现
 					}
@@ -94,7 +95,7 @@ export default class KnowledgeCardPlugin extends Plugin {
 		}
 	}
 
-	async onunload() {
+	onunload() {
 		// Plugin cleanup
 	}
 
@@ -120,7 +121,7 @@ export default class KnowledgeCardPlugin extends Plugin {
 
 		// 激活视图所在的leaf
 		if (leaf) {
-			workspace.revealLeaf(leaf);
+			void workspace.revealLeaf(leaf);
 		}
 	}
 
@@ -183,7 +184,7 @@ export default class KnowledgeCardPlugin extends Plugin {
 			openFiles,
 			this.api,
 			this.mappingManager,
-			async (selectedFiles) => {
+			(selectedFiles) => {
 				if (this.settings.debugMode) {
 					console.debug('[KC Plugin] Selected files:', selectedFiles);
 				}
@@ -313,11 +314,11 @@ class ConfirmRegenerateModal extends Modal {
 		this.callback = callback;
 	}
 
-	onOpen() {
+	onOpen(): void {
 		const { contentEl } = this;
 		contentEl.empty();
 
-		contentEl.createEl('h2', { text: '⚠️ 检测到重复提交' });
+		contentEl.createEl('h2', { text: '⚠️ Duplicate submission detected' });
 
 		const infoDiv = contentEl.createDiv({ cls: 'kc-confirm-info' });
 		infoDiv.createEl('p', { text: `文件「${this.fileName}」已经同步过知识卡片。` });
@@ -353,7 +354,7 @@ class ConfirmRegenerateModal extends Modal {
 		});
 	}
 
-	onClose() {
+	onClose(): void {
 		const { contentEl } = this;
 		contentEl.empty();
 	}

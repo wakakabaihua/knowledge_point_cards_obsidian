@@ -13,17 +13,13 @@ export class KnowledgeCardSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		new Setting(containerEl)
-			.setName('Knowledge Card Sync 设置')
-			.setHeading();
-
 		// API配置部分
 		new Setting(containerEl)
-			.setName('API 配置')
+			.setName('API configuration')
 			.setHeading();
 
 		new Setting(containerEl)
-			.setName('API 地址')
+			.setName('Server address')
 			.setDesc('知识卡片后端API的基础URL（默认无需修改）')
 			.addText(text => text
 				.setPlaceholder('https://www.xiaoxiaodu.cn')
@@ -35,7 +31,7 @@ export class KnowledgeCardSettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('API Token')
+			.setName('Authentication token')
 			.setDesc('用于认证的Token，请前往 https://www.xiaoxiaodu.cn/obsidian-plugin 获取')
 			.addText(text => {
 				text.setPlaceholder('输入您的Token')
@@ -60,11 +56,11 @@ export class KnowledgeCardSettingTab extends PluginSettingTab {
 
 		// 同步配置部分
 		new Setting(containerEl)
-			.setName('同步配置')
+			.setName('Synchronization')
 			.setHeading();
 
 		new Setting(containerEl)
-			.setName('自动同步')
+			.setName('Automatic sync')
 			.setDesc('保存文件时自动同步到知识卡片系统（暂未实现）')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.autoSync)
@@ -74,7 +70,7 @@ export class KnowledgeCardSettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('默认标签')
+			.setName('Default tags')
 			.setDesc('创建卡片时自动添加的标签，用逗号分隔')
 			.addText(text => text
 				.setPlaceholder('例如: 学习,笔记')
@@ -89,11 +85,11 @@ export class KnowledgeCardSettingTab extends PluginSettingTab {
 
 		// 生成配置部分
 		new Setting(containerEl)
-			.setName('生成配置')
+			.setName('Content generation')
 			.setHeading();
 
 		new Setting(containerEl)
-			.setName('生成知识点')
+			.setName('Auto-generate knowledge points')
 			.setDesc('创建卡片后自动生成知识点')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.generateKnowledgePoints)
@@ -103,7 +99,7 @@ export class KnowledgeCardSettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('生成练习题')
+			.setName('Auto-generate practice questions')
 			.setDesc('创建知识点后自动生成练习题')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.generateQuestions)
@@ -114,11 +110,11 @@ export class KnowledgeCardSettingTab extends PluginSettingTab {
 
 		// 调试选项
 		new Setting(containerEl)
-			.setName('调试选项')
+			.setName('Debugging')
 			.setHeading();
 
 		new Setting(containerEl)
-			.setName('调试模式')
+			.setName('Enable debug mode')
 			.setDesc('在控制台输出详细的API调用日志')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.debugMode)
@@ -129,11 +125,11 @@ export class KnowledgeCardSettingTab extends PluginSettingTab {
 
 		// 快捷操作
 		new Setting(containerEl)
-			.setName('快捷操作')
+			.setName('Actions')
 			.setHeading();
 
 		new Setting(containerEl)
-			.setName('测试连接')
+			.setName('Test connection')
 			.setDesc('测试与知识卡片后端的连接')
 			.addButton(button => button
 				.setButtonText('测试')
@@ -152,7 +148,7 @@ export class KnowledgeCardSettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('查看卡片列表')
+			.setName('View cards')
 			.setDesc('在控制台输出所有卡片')
 			.addButton(button => button
 				.setButtonText('查看')

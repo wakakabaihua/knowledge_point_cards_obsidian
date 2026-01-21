@@ -5,6 +5,6 @@
 	"minAppVersion": "1.0.0",
 	"description": "Sync notes to a knowledge card system for generating knowledge points and practice questions.",
 	"author": "Knowledge Card Team",
-	"authorUrl": "https://github.com/wakakabaihua",
+	"authorUrl": "https://github.com/wakakabaihua/knowledge_point_cards_obsidian",
 	"isDesktopOnly": false
 }

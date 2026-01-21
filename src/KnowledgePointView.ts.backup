@@ -1,0 +1,616 @@
+import { ItemView, WorkspaceLeaf, Notice, MarkdownRenderer, Component } from 'obsidian';
+import { KnowledgeCardAPI } from './api';
+import { CardMappingManager } from './CardMappingManager';
+import { CardResponse, KnowledgePoint } from './types';
+
+export const KNOWLEDGE_POINT_VIEW_TYPE = 'knowledge-point-view';
+
+/**
+ * 知识点查看视图
+ */
+export class KnowledgePointView extends ItemView {
+	private api: KnowledgeCardAPI;
+	private mappingManager: CardMappingManager;
+	private currentCards: CardResponse[] = [];
+	private currentCardIndex: number = 0;
+	private viewContentEl: HTMLElement;
+	private component: Component;
+
+	constructor(
+		leaf: WorkspaceLeaf,
+		api: KnowledgeCardAPI,
+		mappingManager: CardMappingManager
+	) {
+		super(leaf);
+		this.api = api;
+		this.mappingManager = mappingManager;
+		this.component = new Component();
+	}
+
+	getViewType(): string {
+		return KNOWLEDGE_POINT_VIEW_TYPE;
+	}
+
+	getDisplayText(): string {
+		return '知识点查看器';
+	}
+
+	getIcon(): string {
+		return 'book-open';
+	}
+
+	async onOpen() {
+		const container = this.containerEl.children[1];
+		container.empty();
+		container.addClass('knowledge-point-view-container');
+
+		this.viewContentEl = container.createDiv('knowledge-point-content');
+
+		// 加载已同步的卡片
+		await this.loadSyncedCards();
+
+		// 显示界面
+		this.render();
+	}
+
+	async onClose() {
+		this.component.unload();
+		this.viewContentEl.empty();
+	}
+
+	/**
+	 * 加载所有已同步的卡片
+	 */
+	private async loadSyncedCards() {
+		try {
+			console.log('[KP View] Loading synced cards...');
+			const mappings = this.mappingManager.getAllMappings();
+			console.log('[KP View] Found mappings:', mappings.length);
+			
+			if (mappings.length === 0) {
+				console.log('[KP View] No mappings found, showing empty state');
+				this.currentCards = [];
+				return;
+			}
+
+			// 获取所有卡片ID
+			const cardIds = mappings.map(m => m.cardId);
+			console.log('[KP View] Card IDs to load:', cardIds);
+			
+			// 批量获取卡片详情
+			this.currentCards = [];
+			for (const mapping of mappings) {
+				try {
+					console.log(`[KP View] Loading card: ${mapping.cardId} (${mapping.title})`);
+					const cardId = mapping.cardId;
+					const card = await this.getCardDetail(cardId);
+					if (card) {
+						console.log(`[KP View] Card loaded:`, {
+							card_id: card.card_id,
+							title: card.title,
+							has_kp: !!card.knowledge_points,
+							kp_count: card.knowledge_points?.length || 0
+						});
+						this.currentCards.push(card);
+					} else {
+						console.warn(`[KP View] Card ${mapping.cardId} returned null`);
+					}
+				} catch (error) {
+					console.error(`[KP View] Failed to load card ${mapping.cardId}:`, error);
+				}
+			}
+
+			console.log(`[KP View] Loaded ${this.currentCards.length} cards successfully`);
+		} catch (error) {
+			console.error('[KP View] Failed to load synced cards:', error);
+			new Notice('加载卡片失败: ' + error.message);
+		}
+	}
+
+	/**
+	 * 获取卡片详情
+	 */
+	private async getCardDetail(cardId: string): Promise<CardResponse | null> {
+		try {
+			console.log(`[KP View] Fetching card detail for: ${cardId}`);
+			const cardResponse = await this.api['request'](`/api/v1/cards/${cardId}`, 'GET');
+			console.log(`[KP View] Card API response status: ${cardResponse.status}`);
+			
+			if (cardResponse.status !== 200) {
+				console.warn(`[KP View] Card API returned non-200 status: ${cardResponse.status}`);
+				return null;
+			}
+
+			const card = cardResponse.json;
+			console.log(`[KP View] Card data received:`, {
+				card_id: card?.card_id,
+				title: card?.title,
+				has_basic_data: !!card
+			});
+
+			// 使用专门的API获取知识点
+			console.log(`[KP View] Fetching knowledge points for card: ${cardId}`);
+			const kpResponse = await this.api['request'](
+				`/api/v1/knowledge-points?card_ids=${cardId}`, 
+				'GET'
+			);
+			
+			if (kpResponse.status === 200 && kpResponse.json) {
+				const knowledgePoints = kpResponse.json.knowledge_points || [];
+				console.log(`[KP View] Knowledge points API response:`, {
+					status: kpResponse.status,
+					total: kpResponse.json.total,
+					count: knowledgePoints.length,
+					knowledge_points_type: typeof knowledgePoints,
+					knowledge_points_is_array: Array.isArray(knowledgePoints),
+					first_kp: knowledgePoints[0]
+				});
+
+				// 将知识点附加到卡片数据
+				card.knowledge_points = knowledgePoints;
+			} else {
+				console.warn(`[KP View] Knowledge points API returned status: ${kpResponse.status}`);
+				card.knowledge_points = [];
+			}
+
+			console.log(`[KP View] Final card data:`, {
+				card_id: card.card_id,
+				title: card.title,
+				knowledge_points_count: card.knowledge_points?.length || 0
+			});
+
+			return card;
+		} catch (error) {
+			console.error(`[KP View] Error fetching card ${cardId}:`, error);
+			return null;
+		}
+	}
+
+	/**
+	 * 获取卡片的所有题目
+	 */
+	private async getQuestionsForKnowledgePoint(kpId: string): Promise<any[]> {
+		try {
+			console.log(`[KP View] Fetching questions for knowledge point: ${kpId}`);
+			const response = await this.api['request'](
+				`/api/v1/knowledge-points/${kpId}/questions`,
+				'GET'
+			);
+
+			console.log(`[KP View] Knowledge point questions API response status: ${response.status}`);
+			
+			if (response.status !== 200) {
+				console.warn(`[KP View] Questions API returned non-200: ${response.status}`);
+				return [];
+			}
+
+			const questions = response.json || [];
+			console.log(`[KP View] Knowledge point questions received:`, {
+				kp_id: kpId,
+				count: questions.length,
+				is_array: Array.isArray(questions),
+				sample: questions[0]
+			});
+
+			return questions;
+		} catch (error) {
+			console.error(`[KP View] Error fetching questions for knowledge point ${kpId}:`, error);
+			return [];
+		}
+	}
+
+	/**
+	 * 渲染界面
+	 */
+	private render() {
+		console.log('[KP View] Rendering view...');
+		this.viewContentEl.empty();
+
+		console.log('[KP View] Current state:', {
+			total_cards: this.currentCards.length,
+			current_index: this.currentCardIndex
+		});
+
+		if (this.currentCards.length === 0) {
+			console.log('[KP View] No cards, showing empty state');
+			this.renderEmptyState();
+			return;
+		}
+
+		// 渲染卡片切换器
+		console.log('[KP View] Rendering card switcher');
+		this.renderCardSwitcher();
+
+		// 渲染当前卡片的知识点
+		console.log('[KP View] Rendering knowledge points');
+		this.renderKnowledgePoints();
+	}
+
+	/**
+	 * 渲染空状态
+	 */
+	private renderEmptyState() {
+		const emptyDiv = this.viewContentEl.createDiv('empty-state');
+		emptyDiv.createEl('div', { 
+			text: '📚',
+			cls: 'empty-icon'
+		});
+		emptyDiv.createEl('h3', { text: '暂无知识卡片' });
+		emptyDiv.createEl('p', { 
+			text: '请先同步一些文档到知识卡片系统',
+			cls: 'empty-hint'
+		});
+	}
+
+	/**
+	 * 渲染卡片切换器
+	 */
+	private renderCardSwitcher() {
+		const switcherContainer = this.viewContentEl.createDiv('card-switcher');
+
+		// 左箭头
+		const prevBtn = switcherContainer.createEl('button', { 
+			text: '←',
+			cls: 'nav-button'
+		});
+		prevBtn.addEventListener('click', () => {
+			if (this.currentCardIndex > 0) {
+				this.currentCardIndex--;
+				this.render();
+			}
+		});
+		prevBtn.disabled = this.currentCardIndex === 0;
+
+		// 卡片信息
+		const currentCard = this.currentCards[this.currentCardIndex];
+		const cardInfo = switcherContainer.createDiv('card-info');
+		
+		const titleEl = cardInfo.createEl('div', { 
+			text: currentCard.title || '未命名卡片',
+			cls: 'card-title'
+		});
+		
+		const metaEl = cardInfo.createDiv('card-meta');
+		metaEl.createEl('span', { 
+			text: `${this.currentCardIndex + 1} / ${this.currentCards.length}`,
+			cls: 'card-index'
+		});
+		metaEl.createEl('span', { 
+			text: `难度: ${currentCard.difficulty || 3}`,
+			cls: 'card-difficulty'
+		});
+		
+		if (currentCard.tags && currentCard.tags.length > 0) {
+			const tagsEl = metaEl.createEl('span', { cls: 'card-tags' });
+			currentCard.tags.forEach(tag => {
+				tagsEl.createEl('span', { text: tag, cls: 'tag' });
+			});
+		}
+
+		// 右箭头
+		const nextBtn = switcherContainer.createEl('button', { 
+			text: '→',
+			cls: 'nav-button'
+		});
+		nextBtn.addEventListener('click', () => {
+			if (this.currentCardIndex < this.currentCards.length - 1) {
+				this.currentCardIndex++;
+				this.render();
+			}
+		});
+		nextBtn.disabled = this.currentCardIndex === this.currentCards.length - 1;
+
+		// 刷新按钮
+		const refreshBtn = switcherContainer.createEl('button', { 
+			text: '🔄',
+			cls: 'refresh-button',
+			attr: { title: '刷新卡片列表' }
+		});
+		refreshBtn.addEventListener('click', async () => {
+			new Notice('正在刷新...');
+			await this.loadSyncedCards();
+			this.currentCardIndex = 0;
+			this.render();
+			new Notice('刷新完成');
+		});
+	}
+
+	/**
+	 * 渲染知识点列表
+	 */
+	private async renderKnowledgePoints() {
+		const currentCard = this.currentCards[this.currentCardIndex];
+		console.log('[KP View] Rendering knowledge points for card:', {
+			card_id: currentCard.card_id,
+			title: currentCard.title,
+			has_knowledge_points: !!currentCard.knowledge_points,
+			kp_type: typeof currentCard.knowledge_points,
+			kp_is_array: Array.isArray(currentCard.knowledge_points),
+			kp_count: currentCard.knowledge_points?.length || 0,
+			kp_data: currentCard.knowledge_points
+		});
+		
+		const kpContainer = this.viewContentEl.createDiv('knowledge-points-container');
+
+		// 卡片摘要
+		if (currentCard.summary) {
+			const summaryDiv = kpContainer.createDiv('card-summary');
+			summaryDiv.createEl('h3', { text: '📝 卡片摘要' });
+			summaryDiv.createEl('p', { text: currentCard.summary });
+		}
+
+		// 知识点列表
+		const kpListDiv = kpContainer.createDiv('knowledge-points-list');
+		kpListDiv.createEl('h3', { 
+			text: `💡 知识点 (${currentCard.knowledge_points?.length || 0})`
+		});
+
+		if (!currentCard.knowledge_points || currentCard.knowledge_points.length === 0) {
+			console.log('[KP View] No knowledge points to display');
+			kpListDiv.createEl('p', { 
+				text: '暂无知识点，可能尚未生成',
+				cls: 'empty-hint'
+			});
+			return;
+		}
+
+		// 渲染每个知识点
+		console.log(`[KP View] Rendering ${currentCard.knowledge_points.length} knowledge points`);
+		for (const kp of currentCard.knowledge_points) {
+			console.log('[KP View] Rendering KP:', {
+				id: kp.knowledge_point_id,
+				title: kp.title,
+				weight: kp.weight,
+				type: kp.type
+			});
+			await this.renderKnowledgePoint(kpListDiv, kp);
+		}
+		console.log('[KP View] Finished rendering all knowledge points');
+	}
+
+	/**
+	 * 渲染单个知识点
+	 */
+	private async renderKnowledgePoint(container: HTMLElement, kp: KnowledgePoint) {
+		console.log('[KP View] renderKnowledgePoint called with:', kp);
+		const kpDiv = container.createDiv('knowledge-point-item');
+
+		// 知识点标题行
+		const headerDiv = kpDiv.createDiv('knowledge-point-header');
+		
+		// 标题
+		const titleEl = headerDiv.createEl('h4', { 
+			text: kp.title,
+			cls: 'knowledge-point-title'
+		});
+		
+		// 右侧标签区域
+		const badgesDiv = headerDiv.createDiv('kp-badges');
+		
+		// 知识点类型
+		if (kp.type) {
+			badgesDiv.createEl('span', { 
+				cls: 'kp-type-badge',
+				text: kp.type
+			});
+		}
+		
+		// 权重标签
+		const weightBadge = badgesDiv.createEl('span', { 
+			cls: 'knowledge-point-weight',
+			text: `权重: ${kp.weight}`
+		});
+		
+		// 根据权重添加不同样式
+		if (kp.weight >= 8) {
+			weightBadge.addClass('weight-high');
+		} else if (kp.weight >= 5) {
+			weightBadge.addClass('weight-medium');
+		} else {
+			weightBadge.addClass('weight-low');
+		}
+
+		// 知识点内容（支持Markdown渲染）
+		const contentDiv = kpDiv.createDiv('knowledge-point-content');
+		if (kp.content) {
+			try {
+				console.log('[KP View] Rendering markdown content for:', kp.title);
+				// 使用Obsidian的Markdown渲染器
+				await MarkdownRenderer.render(
+					this.app,
+					kp.content,
+					contentDiv,
+					'',
+					this.component
+				);
+				console.log('[KP View] Markdown rendered successfully');
+			} catch (error) {
+				console.error('[KP View] Markdown rendering failed, using plain text:', error);
+				// 如果Markdown渲染失败，尝试简单的文本显示
+				contentDiv.empty();
+				const textLines = kp.content.split('\n');
+				textLines.forEach(line => {
+					if (line.trim()) {
+						contentDiv.createEl('p', { text: line });
+					}
+				});
+			}
+		} else {
+			contentDiv.createEl('p', { 
+				text: '暂无内容', 
+				cls: 'empty-hint' 
+			});
+		}
+
+		// 获取并显示该知识点的题目（可折叠）
+		const kpId = kp.knowledge_point_id || (kp as any).id;
+		console.log(`[KP View] Loading questions for KP: ${kpId}`);
+		const questions = await this.getQuestionsForKnowledgePoint(kpId);
+		
+		if (questions.length > 0) {
+			console.log(`[KP View] Rendering ${questions.length} questions for KP: ${kpId}`);
+			this.renderQuestionsCollapsible(kpDiv, questions);
+		} else {
+			console.log(`[KP View] No questions found for KP: ${kpId}`);
+		}
+	}
+
+	/**
+	 * 渲染可折叠的题目列表
+	 */
+	private renderQuestionsCollapsible(container: HTMLElement, questions: any[]) {
+		try {
+			console.log(`[KP View] Rendering ${questions.length} collapsible questions`);
+			
+			if (!questions || questions.length === 0) {
+				console.log('[KP View] No questions to display');
+				return;
+			}
+
+			const questionsDiv = container.createDiv('questions-section');
+			
+			// 题目区域标题（可点击折叠）
+			const questionsHeader = questionsDiv.createDiv('questions-header');
+			questionsHeader.addClass('collapsible-header');
+			
+			const toggleIcon = questionsHeader.createSpan('toggle-icon');
+			toggleIcon.setText('▼');
+			
+			questionsHeader.createEl('h5', { 
+				text: `📋 相关题目 (${questions.length})`,
+				cls: 'questions-title-inline'
+			});
+
+			const questionsList = questionsDiv.createDiv('questions-list');
+			questionsList.addClass('collapsible-content');
+			
+			// 默认展开
+			let isExpanded = true;
+			
+			questionsHeader.addEventListener('click', () => {
+				isExpanded = !isExpanded;
+				if (isExpanded) {
+					questionsList.style.display = 'block';
+					toggleIcon.setText('▼');
+				} else {
+					questionsList.style.display = 'none';
+					toggleIcon.setText('▶');
+				}
+			});
+			
+			questions.forEach((q: any, index: number) => {
+				console.log(`[KP View] Rendering question ${index + 1}:`, {
+					type: q.question_type,
+					text: q.question_text?.substring(0, 50)
+				});
+				
+				const qDiv = questionsList.createDiv('question-item');
+				
+				// 题目编号和类型
+				const qHeader = qDiv.createDiv('question-header');
+				qHeader.createEl('span', { 
+					text: `${index + 1}.`,
+					cls: 'question-number'
+				});
+				
+				const typeBadge = qHeader.createEl('span', { 
+					cls: 'question-type-badge',
+					text: this.getQuestionTypeText(q.question_type)
+				});
+
+				// 题目内容
+				const qContent = qDiv.createDiv('question-content');
+				qContent.createEl('p', { text: q.question_text });
+
+				// 选项（如果是选择题）
+				if (q.options && q.options.length > 0) {
+					const optionsDiv = qContent.createDiv('question-options');
+					q.options.forEach((opt: string, i: number) => {
+						const optionLabel = String.fromCharCode(65 + i);
+						const optEl = optionsDiv.createEl('div', { 
+							cls: 'option-item'
+						});
+						optEl.createEl('span', {
+							text: `${optionLabel}. ${opt}`,
+							cls: 'option-text'
+						});
+						
+						// 标记正确答案
+						if (q.correct_answer === optionLabel) {
+							optEl.addClass('correct-answer');
+							optEl.createEl('span', {
+								text: ' ✓',
+								cls: 'correct-marker'
+							});
+						}
+					});
+				}
+
+				// 正确答案和解析（折叠显示）
+				const answerToggle = qDiv.createEl('button', { 
+					text: '▼ 查看答案',
+					cls: 'answer-toggle'
+				});
+				
+				const answerDiv = qDiv.createDiv('answer-section');
+				answerDiv.style.display = 'none';
+				
+				// 正确答案
+				const correctAnswerDiv = answerDiv.createDiv('correct-answer-section');
+				correctAnswerDiv.createEl('strong', { 
+					text: '✓ 正确答案: ',
+					cls: 'answer-label'
+				});
+				correctAnswerDiv.createEl('span', { 
+					text: q.correct_answer || '未设置',
+					cls: 'answer-value'
+				});
+				
+				// 解析
+				if (q.explanation) {
+					const explanationDiv = answerDiv.createDiv('explanation');
+					explanationDiv.createEl('strong', { text: '💡 解析：' });
+					explanationDiv.createEl('p', { text: q.explanation });
+				}
+
+				// 折叠按钮事件
+				let answerExpanded = false;
+				answerToggle.addEventListener('click', () => {
+					answerExpanded = !answerExpanded;
+					if (answerExpanded) {
+						answerDiv.style.display = 'block';
+						answerToggle.setText('▲ 隐藏答案');
+					} else {
+						answerDiv.style.display = 'none';
+						answerToggle.setText('▼ 查看答案');
+					}
+				});
+			});
+
+			console.log(`[KP View] Finished rendering ${questions.length} questions`);
+		} catch (error) {
+			console.error(`[KP View] Failed to render questions:`, error);
+		}
+	}
+
+	/**
+	 * 获取题目类型文本
+	 */
+	private getQuestionTypeText(type: string): string {
+		const typeMap: Record<string, string> = {
+			'multiple_choice': '选择题',
+			'fill_blank': '填空题',
+			'true_false': '判断题',
+			'short_answer': '简答题'
+		};
+		return typeMap[type] || type;
+	}
+
+	/**
+	 * 刷新视图
+	 */
+	async refresh() {
+		await this.loadSyncedCards();
+		this.render();
+	}
+}
