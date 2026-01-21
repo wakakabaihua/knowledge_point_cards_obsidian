@@ -2,7 +2,7 @@
 
 Sync notes to a knowledge card system for generating knowledge points and practice questions.
 
-将笔记同步到知识卡片系统，自动生成知识点和练习题。
+将笔记同步到知识卡片系统，自动生成知识点和练习题。 
 
 ## Features
 
